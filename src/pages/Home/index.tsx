@@ -11,6 +11,7 @@ import { EmptyResults } from '../../components/EmptyResults'
 import { ErrorsComponent } from '../../components/ErrorsComponent'
 import { Footer } from '../../components/Footer'
 import { Header } from '../../components/Header'
+import { Loader } from '../../components/Loader'
 import { PlayButton } from '../../components/PlayButton'
 import { Synonyms } from '../../components/Synonyms'
 import { api } from '../../libs/axios'
@@ -48,6 +49,8 @@ export default function Home() {
   const [errorResponse, setErrorResponse] = useState<ErrorResponseProps | null>(null)
 
   async function handleGetWordDefinition(data: QuerySearchInput) {
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
     try {
       const response = await api.get(`/v2/entries/en/${data.query}`)
 
@@ -84,38 +87,42 @@ export default function Home() {
         </form>
 
         {word ? (
-          <div>
-            <PlayerBox>
-              <div>
-                <h1>{word?.word}</h1>
-                <PlayButton />
-              </div>
+          formState.isSubmitting ? (
+            <Loader />
+          ) : (
+            <div>
+              <PlayerBox>
+                <div>
+                  <h1>{word?.word}</h1>
+                  <PlayButton />
+                </div>
 
-              {word?.phonetic && <span>{word?.phonetic}</span>}
-            </PlayerBox>
+                {word?.phonetic && <span>{word?.phonetic}</span>}
+              </PlayerBox>
 
-            <MeaningsBox>
-              <div>
-                <em>{word?.meanings[0].partOfSpeech}</em>
-                <Separator orientation="horizontal" />
-              </div>
+              <MeaningsBox>
+                <div>
+                  <em>{word?.meanings[0].partOfSpeech}</em>
+                  <Separator orientation="horizontal" />
+                </div>
 
-              {word?.meanings[0].definitions.slice(0, 8).map((definition) => {
-                return (
-                  <Definition
-                    definition={definition.definition}
-                    example={definition.example}
-                    key={definition.definition}
-                    title={definition.definition}
-                  />
-                )
-              })}
+                {word?.meanings[0].definitions.slice(0, 8).map((definition) => {
+                  return (
+                    <Definition
+                      definition={definition.definition}
+                      example={definition.example}
+                      key={definition.definition}
+                      title={definition.definition}
+                    />
+                  )
+                })}
 
-              {!!word?.meanings[0].synonyms! && (
-                <Synonyms synonyms={word?.meanings[0].synonyms!} />
-              )}
-            </MeaningsBox>
-          </div>
+                {!!word?.meanings[0].synonyms! && (
+                  <Synonyms synonyms={word?.meanings[0].synonyms!} />
+                )}
+              </MeaningsBox>
+            </div>
+          )
         ) : errorResponse ? (
           <ErrorsComponent
             message={errorResponse.message}
